@@ -20,11 +20,9 @@ def chunk_session(session_folder: Path) -> list[dict]:
     transcript_path = session_folder / "audio_tiny.txt"
 
     full_text = transcript_path.read_text(encoding="utf-8")
-    print(f"Read {len(full_text)} characters")
 
     encoder = tiktoken.get_encoding("cl100k_base")
     tokens = encoder.encode(full_text)
-    print(f"Encoded into {len(tokens)} tokens")
 
     # --------------------------------------------------------------------------
 

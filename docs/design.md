@@ -44,7 +44,7 @@ Each folder also has `audio.mp3` (source) and `teaching-brief.md` (auto-generate
 | Layer | Pick | Why | Alternative considered |
 |---|---|---|---|
 | **Vector DB** | **pgvector** (in Postgres) | Single service, free tier on Supabase or local Docker, no separate vector infra. Hiring managers recognize Postgres. | Qdrant (faster, purpose-built) — adds a second service for a 6-session corpus that doesn't need it |
-| **Embeddings** | **Voyage AI `voyage-3`** | Free tier covers project size, embedding quality strong for retrieval. | OpenAI `text-embedding-3-small` (cheap, ubiquitous, but requires paid key) |
+| **Embeddings** | **Local `BAAI/bge-large-en-v1.5`** via `sentence-transformers` (Day 2 final pivot — replaced Voyage after rate-limit + $5-deposit friction; see [`decisions.md`](decisions.md)) | $0 forever, no rate limits, 1024-dim matches existing schema column. ~5-10% lower than Voyage on MTEB but undetectable at this corpus size. | Voyage `voyage-3.5` (better quality, but friction); Gemini embeddings (would require schema dim change) |
 | **LLM (synthesis)** | **Gemini 2.5 Flash** | Free tier on Google AI Studio (no card required). Plenty smart for RAG synthesis. | Gemini 2.5 Pro for "high-stakes" queries (auto-route, Phase 2 polish) |
 | **Framework** | **Direct Google Gemini SDK** (no LangChain / LlamaIndex) | Shows understanding of RAG primitives. Easier to debug. Exact package name verified at install time. | LlamaIndex (cleaner abstractions but adds dep, hides what's happening) |
 | **Frontend** | **Streamlit** (v1) → **Next.js** (v2 polish if time) | 50 LOC for working demo. Streamlit Cloud free hosting. | Next.js for "real" frontend but 4-5x more time |
@@ -67,7 +67,7 @@ audio_tiny.txt × 6
         │
         ▼
 [ embedder.py ]
-  - Voyage AI voyage-3 → 1024-dim vector per chunk
+  - BAAI/bge-large-en-v1.5 (local) → 1024-dim vector per chunk
         │
         ▼
 [ pgvector ]
@@ -83,7 +83,7 @@ audio_tiny.txt × 6
 User question
         │
         ▼
-[ Voyage AI voyage-3 ]  → query embedding
+[ BAAI/bge-large-en-v1.5 ]  → query embedding (local)
         │
         ▼
 [ pgvector kNN search ]
