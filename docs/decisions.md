@@ -6,6 +6,27 @@ Each entry: what was decided, why, trade-offs, and fallback if it goes wrong.
 
 ---
 
+## 2026-06-14 — Phase 3: ADK multi-agent topology + deterministic loop exit
+
+### Topology: SequentialAgent spine + LoopAgent feedback (not LLM-transfer orchestration)
+
+- **Decision:** `root_agent = SequentialAgent[ Orchestrator, LoopAgent(max_iterations=2)[ Researcher, Reviewer, ReviewGate ] ]`.
+- **Why:** A deterministic control spine is more reliable for a graded demo/video than a fully LLM-driven `transfer_to_agent` hierarchy (which can misfire). It still demonstrates **4** communication patterns (rubric needs 2+): Sequential Flow (root), Feedback Loop (the loop), Parallel Execution (Researcher issues `rag_search`+`web_search` concurrently when route=BOTH), Hierarchical Delegation (Orchestrator's `query_type` route drives the Researcher's tool choice via session state).
+- **State flow:** `output_key` writes each agent's result to session state; downstream agents read it via `{key}` instruction templating (ADK `inject_session_state`; verified `bypass_state_injection=False` for plain-string instructions, and `{key?}` optional syntax for the first-iteration empty `review_verdict`). Keys centralized in `src/config.py` so the write side (`output_key=`) and read side (`{key}`) can't drift.
+
+### Deterministic loop exit via ReviewGate (custom BaseAgent), NOT the LLM calling exit_loop
+
+- **Decision:** The Reviewer emits a plain-text `PASS`/`FAIL` verdict only; a tiny custom `BaseAgent` (`ReviewGate`) reads it and yields `EventActions(escalate=True)` on PASS to stop the LoopAgent.
+- **Why (bug found in smoke test):** The first version had the Reviewer call the built-in `exit_loop` tool. Gemini sometimes emitted the PASS *text* in one turn and the `exit_loop` *call* in the next — so the LoopAgent advanced and ran a needless second Researcher turn, which **overwrote a good answer** with a closing pleasantry ("Thank you for the feedback!"). Moving the exit decision out of the LLM's hands makes it deterministic, and making the Reviewer text-only also fixed `review_verdict` being `None` on PASS (the tool call had been swallowing the captured text).
+- **Trade-off:** Adds a 4th node to the loop, but it's control-flow plumbing, not a reasoning agent — the three graded LLM agents remain Orchestrator/Researcher/Reviewer.
+
+### Groundedness checks the retrieved evidence, not the draft's word
+
+- **Decision:** `rag_search` and `web_search` append their raw hits to `state["retrieved_context"]`; the Reviewer is given that evidence as the *only* acceptable support.
+- **Why:** This is what let the Reviewer catch an ungrounded claim naturally in the WEB smoke test — the first draft asserted specific 2026 model releases (GPT-5.5 Pro, the AI assistant Mythos, Gemma 4) that weren't in the Tavily snippets (the LLM leaned on parametric knowledge); the Reviewer FAILed it and the Researcher revised to evidence-only. The user-facing answer is surfaced from `state["draft_answer"]` (the reviewed draft), not the pipeline's last event (which is the QA verdict).
+
+---
+
 ## 2026-06-14 — PIVOT: project repurposed into the Agentic AI cert capstone
 
 ### Project repurposed: transcript-RAG learn-by-doing → Multi-Agent Research Assistant (ADK)
