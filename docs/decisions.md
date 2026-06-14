@@ -6,6 +6,50 @@ Each entry: what was decided, why, trade-offs, and fallback if it goes wrong.
 
 ---
 
+## 2026-06-14 — PIVOT: project repurposed into the Agentic AI cert capstone
+
+### Project repurposed: transcript-RAG learn-by-doing → Multi-Agent Research Assistant (ADK)
+
+- **Decision:** Repurpose `class-notes-rag` from a learn-by-doing RAG over bootcamp transcripts into the **Synapse "Master Agentic AI" certification capstone** — a 3-agent Research Assistant (Orchestrator / Researcher / Reviewer) on **Google ADK**, over a corpus of AI/ML papers (RAG) + live web (Tavily), deployed to Cloud Run.
+- **Why:** Two goals collapse into one build — (1) the cert requires submitting this capstone by the **hard deadline 2026-06-25**; (2) it doubles as the AI-Engineer portfolio centerpiece. The transcript-RAG project had no external deadline and was redundant with the cert work.
+- **Authoritative docs:** [`cert-capstone-design.md`](cert-capstone-design.md) (architecture + graded rubric), [`cert-capstone-build-prompt.md`](cert-capstone-build-prompt.md) (ordered Step 0→Phase 6 plan). These supersede `design.md`/`status.md` as current direction.
+- **Committed:** `b251928` (AGENTS.md rewrite + the two cert docs).
+
+### Stack changes (Google-native, rubric-mandated)
+
+- **Embeddings:** local `BAAI/bge-large-en-v1.5` → **Vertex AI `text-embedding-005`** (rubric requires Vertex). Dimension TBD at smoke test — FAISS index must match it (bge was 1024).
+- **Vector store:** pgvector (Postgres/Docker) → **FAISS on-disk** (rubric-mandated; no DB service to run/deploy).
+- **Agent framework:** none → **Google ADK** + Gemini 2.5 Flash (the 40% graded core; new surface for Zaid).
+- **Web search:** added **Tavily** (15% of rubric).
+- **Serving:** Streamlit-only → **FastAPI → Docker → Cloud Run** (rubric deploy target), thin Streamlit for the demo.
+- **Reuse:** ~30% salvage (chunking/embedding/retrieval *patterns*, repo shell, Gemini choice), ~70% new. Full file-by-file verdict in design doc §9.
+
+### Working mode: learn-by-doing → build + narrate
+
+- **Decision:** Retire the "Zaid writes every line" micro-step rule for this build. the AI assistant writes full implementations and narrates architecture + key decisions tightly.
+- **Why:** The 6/25 deadline doesn't allow line-by-line teaching. Understanding is still required (interview defense), so narration stays — just at the architecture level, not the syntax level.
+
+### Trade-off flagged: this REVERSES the Day 1–2 "$0 / no-payment-method" stance
+
+- Day 1–2 decisions (below) all optimized for $0 and card-off: Voyage rejected over a $5 deposit, local bge chosen to avoid any payment relationship.
+- The cert rubric **mandates Vertex AI + Cloud Run**, both of which require a **billing-enabled GCP project** (credit card on file). This is unavoidable for a submittable cert — actual spend is a few dollars and new accounts get $300 free credit, but the card requirement itself is the friction.
+- **Fallback if GCP billing is a hard blocker:** the salvaged local-bge + FAISS path could run embeddings $0, but it would **not satisfy the rubric** (no Vertex, and Cloud Run still needs billing). So billing is a true prerequisite, not a preference. Surfaced to Zaid at Step 0.
+
+### Colab orientation: package-first + thin driver notebook (NOT notebook-as-code)
+
+- **Decision:** Code lives in the `src/` package (matches the cert SPEC's own sample structure: `src/{agents,rag,tools,observability}/main.py`). Colab's role is **demo + easy-run only** — a thin driver notebook in `notebooks/` that `import`s from `src/` and runs the pipeline cell-by-cell, plus `auth.authenticate_user()` for zero-friction GCP auth. The `src/` modules are NOT cell-annotated.
+- **Why:** The cert's graded deliverables are Code + ppt + demo video — *not* a notebook. Two hard constraints forbid notebook-as-code: (1) Cloud Run deploys a containerized app, not a `.ipynb`; (2) the portfolio centerpiece must read as clean modular code. A module that doubles as a linear notebook fights itself (top-level cell code runs on `import`). Cells should *call* modules, not *contain* them.
+- **Driver file form:** `notebooks/` driver written as a `# %%` jupytext "percent" `.py` (clean diffs, versionable) that Colab/VS Code render as cells and convert to `.ipynb`. This is the "sections in a file" idea — applied only to the driver, not the core modules.
+- **Auth path (Step 0):** local `gcloud` ADC, not Colab auth — so the AI assistant can run/verify the pipeline locally as it builds, and because Cloud Run needs that same ADC. Colab auth (`auth.authenticate_user()`) stays available as the demo-notebook path. (Zaid's pick, 2026-06-14.)
+
+### Step 0 (GCP gate) — RESOLVED 2026-06-14
+
+- **GCP project:** reused existing `gen-lang-client-0465370954` (was "RAG Class Notes Project", renamed display name → "Research Assistant"; ID immutable, internal-only). Linked to the already-open billing account `0152F7-72D563-C7DDEF` — so **no new card needed**, the friction was smaller than feared. APIs `aiplatform`/`run`/`cloudbuild` enabled. ADC saved (quota project auto-set).
+- **Embedding dimension = 768** (`text-embedding-005`, Vertex, `us-central1`) — confirmed by a live smoke test, not assumed. **FAISS must be 768-dim.** Resolves the design doc §10 open question (and supersedes the pre-pivot bge 1024-dim).
+- **Windows gotcha (for any future GCP/CLI work):** the Cloud SDK here is a Unix-style install — only the extension-less `gcloud` bash script exists, no `gcloud.cmd`. **Run all gcloud from Git Bash, not PowerShell** (PowerShell can't exec the extension-less file and tries to "open" it). Git Bash pastes with right-click / Shift+Insert, not Ctrl+V.
+
+---
+
 ## 2026-05-14 — Day 2
 
 ### Embeddings provider: Voyage → local sentence-transformers (final pivot of the day)

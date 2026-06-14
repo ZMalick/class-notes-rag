@@ -1,17 +1,24 @@
 [project]
-name = "class-notes-rag"
+name = "research-assistant"
 version = "0.1.0"
-description = "RAG over Agentic AI Bootcamp transcripts."
+description = "Multi-agent Research Assistant (Google ADK) over AI/ML papers (RAG) + live web search."
 requires-python = ">=3.11"
 dependencies = [
-    # Gemini SDK added Day 3 (exact package name + pin verified at install).
-    "sentence-transformers>=3.0",
-    "psycopg[binary]>=3.2",
-    "sqlalchemy>=2.0",
+    # Agent framework + LLM/embeddings (Google-native, per cert rubric)
+    "google-adk>=2.2",
+    "google-genai>=2.8",
+    # RAG: PDF extraction + on-disk vector index
+    "pypdf>=5.0",
+    "faiss-cpu>=1.9",
+    "tiktoken>=0.8",          # token-window chunking fallback
+    # Web search tool
+    "tavily-python>=0.5",
+    # Serving
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.30",
+    # Demo UI + config
     "streamlit>=1.40",
     "python-dotenv>=1.0",
-    "tiktoken>=0.8",
-    "pgvector>=0.3",
 ]
 
 [dependency-groups]
@@ -19,6 +26,10 @@ dev = [
     "pytest>=8.0",
     "ruff>=0.7",
 ]
+
+[tool.uv]
+# Run-from-root src/ layout; uv manages deps but doesn't build/install this project itself.
+package = false
 
 [tool.ruff]
 line-length = 100

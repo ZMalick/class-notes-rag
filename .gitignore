@@ -29,6 +29,15 @@ data/
 *.db
 *.sqlite
 
+# RAG vector index (rebuilt from knowledge_base/ via embedder.py)
+faiss_index/
+*.faiss
+
+# GCP / service-account credentials — never commit (ADC lives in the user dir)
+*-key.json
+*credentials*.json
+service-account*.json
+
 # Eval outputs
 eval_results.json
 eval_results.csv
