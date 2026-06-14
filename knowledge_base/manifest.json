@@ -1,0 +1,62 @@
+{
+  "attention-is-all-you-need": {
+    "arxiv_id": "1706.03762",
+    "title": "Attention Is All You Need"
+  },
+  "bert": {
+    "arxiv_id": "1810.04805",
+    "title": "BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding"
+  },
+  "gpt-3": {
+    "arxiv_id": "2005.14165",
+    "title": "Language Models are Few-Shot Learners (GPT-3)"
+  },
+  "rag": {
+    "arxiv_id": "2005.11401",
+    "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks"
+  },
+  "dpr": {
+    "arxiv_id": "2004.04906",
+    "title": "Dense Passage Retrieval for Open-Domain Question Answering"
+  },
+  "chain-of-thought": {
+    "arxiv_id": "2201.11903",
+    "title": "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models"
+  },
+  "react": {
+    "arxiv_id": "2210.03629",
+    "title": "ReAct: Synergizing Reasoning and Acting in Language Models"
+  },
+  "toolformer": {
+    "arxiv_id": "2302.04761",
+    "title": "Toolformer: Language Models Can Teach Themselves to Use Tools"
+  },
+  "lora": {
+    "arxiv_id": "2106.09685",
+    "title": "LoRA: Low-Rank Adaptation of Large Language Models"
+  },
+  "flashattention": {
+    "arxiv_id": "2205.14135",
+    "title": "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness"
+  },
+  "llama-2": {
+    "arxiv_id": "2307.09288",
+    "title": "Llama 2: Open Foundation and Fine-Tuned Chat Models"
+  },
+  "self-rag": {
+    "arxiv_id": "2310.11511",
+    "title": "Self-RAG: Learning to Retrieve, Generate, and Critique through Self-Reflection"
+  },
+  "hyde": {
+    "arxiv_id": "2212.10496",
+    "title": "Precise Zero-Shot Dense Retrieval without Relevance Labels (HyDE)"
+  },
+  "lost-in-the-middle": {
+    "arxiv_id": "2307.03172",
+    "title": "Lost in the Middle: How Language Models Use Long Contexts"
+  },
+  "mixtral": {
+    "arxiv_id": "2401.04088",
+    "title": "Mixtral of Experts"
+  }
+}

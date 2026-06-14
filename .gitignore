@@ -29,6 +29,9 @@ data/
 *.db
 *.sqlite
 
+# Corpus PDFs — reproducible via scripts/download_corpus.py (manifest.json is tracked)
+knowledge_base/*.pdf
+
 # RAG vector index (rebuilt from knowledge_base/ via embedder.py)
 faiss_index/
 *.faiss
