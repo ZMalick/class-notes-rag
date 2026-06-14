@@ -41,6 +41,9 @@ faiss_index/
 *credentials*.json
 service-account*.json
 
+# Observability traces (per-run JSONL, regenerated each run)
+logs/
+
 # Eval outputs
 eval_results.json
 eval_results.csv

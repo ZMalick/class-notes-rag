@@ -6,6 +6,15 @@ Each entry: what was decided, why, trade-offs, and fallback if it goes wrong.
 
 ---
 
+## 2026-06-14 — Phase 4: observability via a single ADK Plugin
+
+- **Decision:** Instrument with one `ObservabilityPlugin(BasePlugin)` attached to the Runner (`plugins=[...]`), not per-agent callbacks or hand-parsing the event stream. One attachment point gives global before/after hooks for run/agent/tool/model with precise `perf_counter` timing and real `usage_metadata` token counts.
+- **Why:** Cleanest, least-coupled seam, and reusable as-is by the Phase 5 FastAPI app (`plugin.metrics`). Matches design §7's "pragmatic, not enterprise" bar — structured JSONL logs + ADK-native traces + a small metrics summary, no OTel/Cloud Trace.
+- **Timing pairing fix:** stack for agents (execution is strictly nested), name-key for tools (distinct names per turn) — because ADK passes a *fresh* `CallbackContext` to the before vs after hook, so object identity can't pair them (first version showed all-0ms latencies until this was found).
+- **Honesty:** the runtime "retrieval" metric is cosine top/mean (a quality signal), NOT a hit-rate; true hit-rate is deferred to Phase 6 eval with labeled Q/A. The RAG-vs-web "split" is tool-call counts.
+
+---
+
 ## 2026-06-14 — Phase 3: ADK multi-agent topology + deterministic loop exit
 
 ### Topology: SequentialAgent spine + LoopAgent feedback (not LLM-transfer orchestration)

@@ -18,6 +18,7 @@ from google.genai import types
 
 from src.agents import root_agent
 from src.config import DRAFT_ANSWER, QUERY_TYPE, REVIEW_VERDICT
+from src.observability import ObservabilityPlugin
 
 load_dotenv()
 
@@ -45,8 +46,12 @@ async def ask(question: str) -> dict:
     await session_service.create_session(
         app_name=APP_NAME, user_id=USER_ID, session_id=SESSION_ID
     )
+    obs = ObservabilityPlugin()
     runner = Runner(
-        agent=root_agent, app_name=APP_NAME, session_service=session_service
+        agent=root_agent,
+        app_name=APP_NAME,
+        session_service=session_service,
+        plugins=[obs],
     )
 
     message = types.Content(role="user", parts=[types.Part(text=question)])
@@ -65,6 +70,8 @@ async def ask(question: str) -> dict:
     print(f"  {REVIEW_VERDICT}: {state.get(REVIEW_VERDICT)!r}")
     print("\n=== ANSWER ===")
     print(state.get(DRAFT_ANSWER, "(no answer produced)"))
+    print("\n--- observability ---")
+    print(obs.summary())
     return dict(state)
 
 
