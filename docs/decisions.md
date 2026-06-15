@@ -6,6 +6,15 @@ Each entry: what was decided, why, trade-offs, and fallback if it goes wrong.
 
 ---
 
+## 2026-06-14 — Phase 5: serving shape (shared core, index baked into image)
+
+- **Decision:** Extract `run_query()` into `src/pipeline.py` as the single request/response core; FastAPI (`src/main.py`) and Streamlit both call it. The CLI keeps its own live event-streaming loop — different UX (watch-it-work vs request/response), so a little duplication is worth the clarity.
+- **Decision:** Bake the prebuilt FAISS index into the Docker image (~5 MB, gitignored) rather than rebuild at container start or fetch at runtime — fast cold starts, no build-time Vertex calls, no runtime dependency on the corpus PDFs. The rebuild path stays `embedder.py` from `knowledge_base/`.
+- **Decision:** uv-based image from `uv.lock` (`--frozen`), launched via `python -m uvicorn` (so `src.main` is importable without installing the project), `$PORT` honored for Cloud Run. Secrets never baked — Vertex via service-identity ADC; `TAVILY_API_KEY` + `GOOGLE_*` supplied as deploy env vars.
+- **Deferred:** the actual `docker build` + Cloud Run deploy (credit + keyboard) per the "pause before deploy" decision; local FastAPI tested via uvicorn instead.
+
+---
+
 ## 2026-06-14 — Phase 4: observability via a single ADK Plugin
 
 - **Decision:** Instrument with one `ObservabilityPlugin(BasePlugin)` attached to the Runner (`plugins=[...]`), not per-agent callbacks or hand-parsing the event stream. One attachment point gives global before/after hooks for run/agent/tool/model with precise `perf_counter` timing and real `usage_metadata` token counts.

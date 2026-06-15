@@ -1,0 +1,25 @@
+# Keep the image lean and secret-free. Build context = project root.
+# KEPT (needed at runtime): src/, faiss_index/, pyproject.toml, uv.lock
+.git/
+.gitignore
+.venv/
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Secrets — never bake; supplied as Cloud Run env vars / ADC
+.env
+.env.*
+
+# Not needed at runtime
+knowledge_base/
+logs/
+notebooks/
+docs/
+tests/
+*.md
+smoke_vertex_embed.py
+.vscode/
+.idea/
+.python-version

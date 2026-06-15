@@ -19,6 +19,7 @@ dependencies = [
     # Demo UI + config
     "streamlit>=1.40",
     "python-dotenv>=1.0",
+    "requests>=2.34.0",
 ]
 
 [dependency-groups]
