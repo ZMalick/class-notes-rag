@@ -9,6 +9,8 @@ with full observability and an automated evaluation harness.
 Built as the capstone for the Synapse "Master Agentic AI" certification and as an
 AI-engineering portfolio project.
 
+**Live demo:** https://research-assistant-969189630215.us-central1.run.app — try `GET /health` or `POST /ask {"question": "..."}`.
+
 ---
 
 ## Highlights
@@ -211,17 +213,24 @@ PHOENIX_ENABLED=true uv run python -m src.cli "How has RAG evolved?"   # termina
 
 ## Deployment
 
-The service is containerized for **Google Cloud Run**
-([deployment/Dockerfile](deployment/Dockerfile)): a `uv`-based image built from
-`uv.lock`, with the prebuilt FAISS index baked in (corpus PDFs and eval deps
-excluded). Vertex/Gemini auth comes from the Cloud Run service identity (ADC) —
-no keys baked into the image.
+**Live:** https://research-assistant-969189630215.us-central1.run.app — public
+endpoint, capped at 3 instances, scales to zero when idle.
+
+The service is containerized for **Google Cloud Run** ([Dockerfile](Dockerfile)):
+a `uv`-based image built from `uv.lock`, with the prebuilt FAISS index baked in
+(corpus PDFs and eval deps excluded). Vertex/Gemini auth comes from the Cloud Run
+service identity (ADC) — no keys baked into the image; `gcloud run deploy --source`
+uses [.gcloudignore](.gcloudignore) so the gitignored index still uploads.
 
 ```bash
-docker build -f deployment/Dockerfile -t research-assistant .
-```
+# Local build
+docker build -t research-assistant .
 
-> _Live Cloud Run URL: to be added after deploy._
+# Deploy to Cloud Run (built in-cloud via Cloud Build)
+gcloud run deploy research-assistant --source . --region us-central1 \
+  --allow-unauthenticated --memory 1Gi \
+  --set-env-vars GOOGLE_GENAI_USE_VERTEXAI=true,GOOGLE_CLOUD_PROJECT=<id>,GOOGLE_CLOUD_LOCATION=us-central1,TAVILY_API_KEY=<key>
+```
 
 ---
 
@@ -238,7 +247,7 @@ src/
   cli.py          live-trace CLI runner
 eval/             Ragas + routing evaluation harness and dataset
 knowledge_base/   corpus manifest (PDFs downloaded via scripts/)
-deployment/       Dockerfile for Cloud Run
+Dockerfile        container image (Cloud Run / local docker build)
 docs/             design, decisions, and session logs
 ```
 

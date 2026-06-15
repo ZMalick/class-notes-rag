@@ -1,6 +1,6 @@
 # Multi-agent Research Assistant -> Cloud Run.
-# Build from the PROJECT ROOT (build context = repo root):
-#   docker build -f deployment/Dockerfile -t research-assistant .
+# Root Dockerfile used by `gcloud run deploy --source .` (Cloud Build).
+# (deployment/Dockerfile is the equivalent for a local `docker build -f`.)
 FROM python:3.13-slim
 
 # uv for fast, reproducible installs straight from uv.lock
@@ -12,7 +12,7 @@ ENV UV_COMPILE_BYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PYTHONPATH=/app
 
-# 1) Dependencies first (cached layer) — from the lockfile, no dev tools, no project
+# 1) Dependencies first (cached layer) — from the lockfile, no dev/eval tools, no project
 COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-install-project --no-dev
 

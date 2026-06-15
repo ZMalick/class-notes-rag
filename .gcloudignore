@@ -1,0 +1,31 @@
+# Upload context for `gcloud run deploy --source .` (Cloud Build).
+# NOTE: when this file exists, gcloud uses it INSTEAD of .gitignore — so the
+# gitignored faiss_index/ is uploaded (the image bakes it), while secrets and the
+# venv are kept out. Only what the Dockerfile COPYs needs to be here:
+# Dockerfile, pyproject.toml, uv.lock, src/, faiss_index/.
+
+.git/
+.venv/
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Secrets — never upload
+.env
+.env.*
+*-key.json
+*credentials*.json
+
+# Not needed in the runtime image
+knowledge_base/
+eval/
+docs/
+logs/
+notebooks/
+scripts/
+tests/
+deployment/
+app_streamlit.py
+*.md
+.gitignore
+.dockerignore
