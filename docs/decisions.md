@@ -6,6 +6,19 @@ Each entry: what was decided, why, trade-offs, and fallback if it goes wrong.
 
 ---
 
+## 2026-06-14 — Phase 6 (part 1): Ragas eval + Phoenix observability (portfolio upgrade)
+
+- **Decision:** Add **Ragas** (RAG eval) and **Arize Phoenix** (OpenTelemetry trace UI) on top of — not replacing — the existing custom `ObservabilityPlugin` and the originally-planned hand-rolled eval. This **reverses two earlier calls**: design.md §"Eval" rejected Ragas as "overkill," and AGENTS.md says "Do NOT use LangChain."
+- **Why:** This is the interview centerpiece; "evaluated with Ragas, traced with Phoenix" are recognizable resume lines and stronger demo artifacts (the Phoenix trace waterfall is the video money-shot) than a bespoke harness. The "no-LangChain / show-the-primitives" rule is about the **agent core**, which stays LangChain-free — Ragas' LangChain deps are eval-only.
+- **Dependency isolation:** eval deps live in a non-default `eval` dependency group. The Cloud Run image (`uv sync --frozen --no-dev`) installs production deps only, so ragas/langchain/phoenix never ship. Phoenix is also **lazy-imported behind a `PHOENIX_ENABLED` flag** → `setup_phoenix()` is a no-op in prod and when the eval group isn't installed.
+- **Key fix — ragas 0.4.3 ✗ langchain 1.x:** the resolver first pulled langchain 1.x / langchain-community 0.4, where `langchain_community.chat_models.vertexai` was removed; ragas 0.4.3 imports that path unconditionally → `ModuleNotFoundError` on `import ragas`. Fixed by pinning the langchain stack to the 0.3 line (`langchain<1`, `langchain-core<1`, `langchain-community<0.4`, `langchain-openai<1`). Only ragas uses langchain here, so pinning it down is safe. Also note: adding the group downgraded shared `protobuf` 7.x→6.x; verified `google.adk`/`google.genai`/`faiss` still import and the pipeline still runs.
+- **Eval design (methodological):** reference-based Ragas metrics (faithfulness, answer_relevancy, context_precision, context_recall) run **only on CORPUS/BOTH rows**, which have a fixed ground-truth answer. A separate **deterministic routing-accuracy** check (expected vs Orchestrator route) covers **all** rows incl. WEB — because live-web answers have no stable reference to score against. Judge = `gemini-2.5-pro`, embeddings = `text-embedding-005` (same model as the corpus index), via the `LangchainLLMWrapper`/`LangchainEmbeddingsWrapper` path (the native `llm_factory` path had uncertain compat with the legacy `evaluate()` metrics — not worth the deadline risk).
+- **Trade-offs:** (a) langchain pinned to an old line — acceptable, eval-only, off the serving path; (b) ragas legacy metric singletons emit DeprecationWarnings (work until v1.0; suppressed in the harness); (c) the new `eval` group must be synced explicitly for local runs (`uv sync --group eval`).
+- **Verified:** 1-row smoke end-to-end (pipeline → retrieved_context → Vertex judge → 4 metrics → `eval/results.md`; routing 1/1). Full 19-row run held pending Zaid's OK (spends Gemini credit at scale).
+- **Fallback if Ragas proves flaky at scale:** the deterministic routing metric + the `ObservabilityPlugin` cosine/token metrics still stand alone; could drop to faithfulness-only or revert to the hand-rolled groundedness judge from design.md.
+
+---
+
 ## 2026-06-14 — Phase 5: serving shape (shared core, index baked into image)
 
 - **Decision:** Extract `run_query()` into `src/pipeline.py` as the single request/response core; FastAPI (`src/main.py`) and Streamlit both call it. The CLI keeps its own live event-streaming loop — different UX (watch-it-work vs request/response), so a little duplication is worth the clarity.

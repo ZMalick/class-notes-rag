@@ -47,3 +47,5 @@ logs/
 # Eval outputs
 eval_results.json
 eval_results.csv
+eval/*.log
+eval/_*.log

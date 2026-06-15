@@ -11,7 +11,7 @@ from google.adk.sessions import InMemorySessionService
 from google.genai import types
 
 from src.agents import root_agent
-from src.config import DRAFT_ANSWER, QUERY_TYPE, REVIEW_VERDICT
+from src.config import DRAFT_ANSWER, QUERY_TYPE, RETRIEVED_CONTEXT, REVIEW_VERDICT
 from src.observability import ObservabilityPlugin
 
 load_dotenv()
@@ -49,5 +49,9 @@ async def run_query(question: str, session_id: str = "api") -> dict:
         "answer": state.get(DRAFT_ANSWER),
         "route": state.get(QUERY_TYPE),
         "review_verdict": state.get(REVIEW_VERDICT),
+        # Raw evidence the tools retrieved (list of {origin, citation, text}).
+        # The API/UI ignore it; the Ragas eval harness uses it as the contexts
+        # to score faithfulness / context precision+recall against.
+        "retrieved_context": state.get(RETRIEVED_CONTEXT, []),
         "metrics": obs.metrics,
     }

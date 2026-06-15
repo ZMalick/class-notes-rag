@@ -18,9 +18,15 @@ from google.genai import types
 
 from src.agents import root_agent
 from src.config import DRAFT_ANSWER, QUERY_TYPE, REVIEW_VERDICT
-from src.observability import ObservabilityPlugin
+from src.observability import ObservabilityPlugin, setup_phoenix
 
 load_dotenv()
+
+# Optional Phoenix trace UI (no-op unless PHOENIX_ENABLED is set). Call once at
+# import time so ADK is instrumented before the first Runner is built. Run the
+# collector/UI separately:  PHOENIX_ENABLED=true; then `phoenix serve` in another
+# terminal, and watch the trace waterfall at http://localhost:6006.
+setup_phoenix()
 
 APP_NAME = "research-assistant"
 USER_ID = "local"

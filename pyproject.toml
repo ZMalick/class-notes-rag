@@ -27,6 +27,17 @@ dev = [
     "pytest>=8.0",
     "ruff>=0.7",
 ]
+eval = [
+    "arize-phoenix>=17.5.0",
+    "arize-phoenix-otel>=0.16.1",
+    "langchain<1",
+    "langchain-community<0.4",
+    "langchain-core<1",
+    "langchain-google-vertexai>=2.0.22",
+    "langchain-openai<1",
+    "openinference-instrumentation-google-adk>=0.1.15",
+    "ragas>=0.4.3",
+]
 
 [tool.uv]
 # Run-from-root src/ layout; uv manages deps but doesn't build/install this project itself.
