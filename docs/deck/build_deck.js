@@ -1,5 +1,5 @@
 // Research Assistant — Multi-Agent ADK capstone deck.
-// Build: npm i pptxgenjs && node build_deck.js   (writes ./Research-Assistant-Capstone.pptx)
+// Build: npm i pptxgenjs && node build_deck.js   (writes ../Research-Assistant-Capstone.pptx)
 const pptxgen = require("pptxgenjs");
 
 const pres = new pptxgen();
@@ -102,7 +102,7 @@ function arrow(s, x, y) {
   s.addText([
     { text: "Zaid Malick", options: { bold: true, color: C.white, breakLine: true } },
     { text: "Synapse “Master Agentic AI” certification capstone", options: { color: C.ice, fontSize: 12, breakLine: true } },
-    { text: "github.com/ZMalick/class-notes-rag  ·  research-assistant-969189630215.us-central1.run.app", options: { color: C.accent, fontSize: 11 } },
+    { text: "github.com/ZMalick/multi-agent-research-assistant  ·  research-assistant-969189630215.us-central1.run.app", options: { color: C.accent, fontSize: 11 } },
   ], { x: 1.0, y: 5.7, w: 11.5, h: 1.0, margin: 0, fontFace: BODY, fontSize: 14, lineSpacingMultiple: 1.1 });
 }
 
@@ -280,10 +280,10 @@ function arrow(s, x, y) {
     { text: "Full agent run as a waterfall — every step, tool, token.", options: { bullet: true, color: C.ice, breakLine: true } },
     { text: "Eval-only dep — never in the production image.", options: { bullet: true, color: C.ice } },
   ], { x: 0.95, y: 5.1, w: 5.3, h: 1.2, margin: 0, fontFace: BODY, fontSize: 13, paraSpaceAfter: 6 });
-  // screenshot placeholder
-  s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 6.8, y: 1.8, w: 5.9, h: 4.65, rectRadius: 0.08, fill: { color: C.panel }, line: { color: C.accent, width: 1.5, dashType: "dash" } });
-  s.addText("[ Phoenix trace screenshot ]", { x: 6.8, y: 3.7, w: 5.9, h: 0.5, margin: 0, align: "center", fontFace: BODY, fontSize: 15, bold: true, color: C.mute });
-  s.addText("paste the trace waterfall captured during the demo recording", { x: 6.8, y: 4.2, w: 5.9, h: 0.5, margin: 0, align: "center", fontFace: BODY, fontSize: 11, italic: true, color: C.mute });
+  // real Phoenix trace, captured from a live run (docs/images/phoenix-trace.png)
+  s.addImage({ path: "../images/phoenix-trace.png", x: 6.8, y: 2.0, w: 5.9, h: 3.69 });
+  s.addShape(pres.shapes.RECTANGLE, { x: 6.8, y: 2.0, w: 5.9, h: 3.69, fill: { type: "none" }, line: { color: C.accent, width: 1.5 } });
+  s.addText("A real run traced end-to-end: Orchestrator → Researcher (rag_search) → Reviewer → ReviewGate, with latency + tokens per span.", { x: 6.8, y: 5.8, w: 5.9, h: 0.7, margin: 0, align: "center", fontFace: BODY, fontSize: 11, italic: true, color: C.mute });
   footer(s, 8);
 }
 
@@ -388,11 +388,11 @@ function arrow(s, x, y) {
 
   s.addText([
     { text: "Evaluated, observable, and live — not just a prototype.", options: { bold: true, color: C.white, fontSize: 20, breakLine: true } },
-    { text: "github.com/ZMalick/class-notes-rag", options: { color: C.accent, fontSize: 14, breakLine: true } },
+    { text: "github.com/ZMalick/multi-agent-research-assistant", options: { color: C.accent, fontSize: 14, breakLine: true } },
     { text: "research-assistant-969189630215.us-central1.run.app", options: { color: C.accent, fontSize: 14 } },
   ], { x: 1.0, y: 4.85, w: 11.3, h: 1.6, margin: 0, fontFace: BODY, lineSpacingMultiple: 1.25 });
   s.addText("Thank you", { x: 1.0, y: 6.5, w: 11, h: 0.6, margin: 0, fontFace: HEAD, fontSize: 22, bold: true, color: C.ice });
 }
 
-const OUT = "Research-Assistant-Capstone.pptx";
+const OUT = "../Research-Assistant-Capstone.pptx";
 pres.writeFile({ fileName: OUT }).then((f) => console.log("WROTE", f)).catch((e) => { console.error("ERR", e); process.exit(1); });

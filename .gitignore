@@ -52,3 +52,9 @@ eval/_*.log
 
 # Transient deploy logs
 deployment/_*.log
+
+# Node deps for the deck builder (docs/deck) — package.json + lock are tracked for reproducible builds
+node_modules/
+
+# Playwright MCP scratch output (browser snapshots/screenshots/console logs)
+.playwright-mcp/

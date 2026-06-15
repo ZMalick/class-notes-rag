@@ -207,7 +207,12 @@ phoenix serve                                 # terminal 1 — collector + UI at
 PHOENIX_ENABLED=true uv run python -m src.cli "How has RAG evolved?"   # terminal 2
 ```
 
-> _Trace screenshot: to be added after recording the demo._
+![Phoenix trace of a multi-agent run](docs/images/phoenix-trace.png)
+
+_A single query traced end-to-end: the `invocation` root fans out to the
+`ResearchAssistant` spine → `Orchestrator` (route) → `ResearchReviewLoop` →
+`Researcher` (with its `rag_search` tool call) → `Reviewer` → `ReviewGate`, every
+span carrying its own latency and token counts._
 
 ---
 
