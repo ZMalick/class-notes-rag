@@ -100,7 +100,6 @@ Every existing file was reviewed. Verdict per file:
 
 | File | Now | Action in build |
 |------|-----|-----------------|
-| `AGENTS.md` | rewritten 6/14 ✓ | done |
 | `ingest/chunker.py` | token chunks from `audio_tiny.txt`, hardcoded EA path | **rework → `src/rag/chunker.py`**: PDF input, semantic chunking, paper metadata |
 | `ingest/embedder.py` | bge → pgvector INSERT, hardcoded EA path | **rework → `src/rag/embedder.py`**: Vertex embed → FAISS; drop psycopg |
 | `app/retriever.py` | bge query-embed only (Shape A) | **rework → `src/rag/retriever.py`**: Vertex embed + FAISS top-k |
@@ -110,8 +109,8 @@ Every existing file was reviewed. Verdict per file:
 | `pyproject.toml` | sentence-transformers, psycopg, sqlalchemy, pgvector, tiktoken, streamlit | **rework deps**: +google-adk, +google-genai/vertex, +faiss-cpu, +pypdf, +tavily-python, +fastapi, +uvicorn; −psycopg, −sqlalchemy, −pgvector, −sentence-transformers; update name/description |
 | `.gitignore` | ignores `.env`, `.venv`, `data/`, eval outputs | **add**: `faiss_index/`, `*.faiss`, GCP creds json; reconsider `data/` (corpus now `knowledge_base/`) |
 | `ingest/`, `app/` dirs | old layout | **migrate** to cert's `src/{agents,rag,tools,observability}` + `main.py` |
-| `docs/design.md`, `status.md`, `teaching-style.md`, `learning.md`, `shapes.md`, `weaknesses.md` | pre-pivot learn-by-doing / transcript-RAG | **historical** — leave; add a one-line "superseded by cert-capstone-design.md" banner to design.md + status.md |
-| `docs/decisions.md`, `docs/sessions.md` | living logs | **keep appending** — log the pivot + each build session |
+| `docs/design.md` | pre-pivot transcript-RAG design | **historical** — superseded by this doc (banner added) |
+| `docs/decisions.md` | living decision log | **keep appending** — log the pivot + each decision |
 | new dirs | — | create `knowledge_base/`, `tests/`, `deployment/`, `notebooks/` |
 
 **Net:** ~30% salvage (chunking/embedding/retrieval *patterns*, repo shell, git, Gemini choice, Streamlit), ~70% new (ADK layer, Tavily, Vertex+FAISS, observability, Cloud Run, directory restructure).

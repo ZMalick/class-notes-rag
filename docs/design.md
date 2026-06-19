@@ -2,7 +2,7 @@
 
 > **SUPERSEDED 2026-06-14** — the project pivoted to the Agentic AI cert capstone (Multi-Agent Research Assistant on Google ADK). The current authoritative design is [`cert-capstone-design.md`](cert-capstone-design.md). Everything below is pre-pivot history (transcript-RAG / pgvector / local bge era).
 
-**Status:** Skeleton drafted 2026-05-10. Stack revised 2026-05-12 Day 1: synthesis + eval-judge LLM swapped from the AI assistant (Sonnet 4.7 / Opus 4.7) to Gemini (2.5 Flash / 2.5 Pro) because Anthropic signup credit was already used. Voyage embeddings unchanged.
+**Status:** Skeleton drafted 2026-05-10. Stack revised 2026-05-12 Day 1: synthesis + eval-judge LLM swapped from another vendor's models to Gemini (2.5 Flash / 2.5 Pro) because that vendor's signup credit was already used. Voyage embeddings unchanged.
 
 **Owner:** Zaid Malick
 **Target ship date:** Mid-July 2026 (Phase 2 deliverable per `projects/summer-2026-activities.md` Lever 1)

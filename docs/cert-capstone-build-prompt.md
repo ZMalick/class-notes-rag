@@ -1,6 +1,6 @@
 # Cert Capstone — Build Prompt / Execution Plan
 
-**Read first:** [`AGENTS.md`](../AGENTS.md) (working mode + stack) and [`cert-capstone-design.md`](cert-capstone-design.md) (architecture + rubric). This file is the ordered plan.
+**Read first:** [`cert-capstone-design.md`](cert-capstone-design.md) (architecture + rubric). This file is the ordered plan.
 
 **Deadline:** 2026-06-25. **Mode:** Build + narrate (you write the code; explain architecture + key decisions briefly as you go). **Target:** ~8 focused days; front-load, keep Net+ light.
 
@@ -8,7 +8,7 @@
 
 ## KICKOFF (paste this to start the fresh session in `class-notes-rag/`)
 
-> Read `AGENTS.md` + `docs/cert-capstone-design.md` + `docs/cert-capstone-build-prompt.md`. We're reshaping this project into the Agentic AI cert capstone (Multi-Agent Research Assistant on Google ADK). Start with **Step 0 (GCP gate)**, then work the phases in order. Build + narrate mode. Log each session to `docs/sessions.md` and decisions to `docs/decisions.md`. Verify ADK/Vertex package + API names against current docs before writing against them — don't trust names from memory.
+> Read `docs/cert-capstone-design.md` + `docs/cert-capstone-build-prompt.md`. We're reshaping this project into the Agentic AI cert capstone (Multi-Agent Research Assistant on Google ADK). Start with **Step 0 (GCP gate)**, then work the phases in order. Build + narrate mode. Log each session to `docs/sessions.md` and decisions to `docs/decisions.md`. Verify ADK/Vertex package + API names against current docs before writing against them — don't trust names from memory.
 
 ---
 

@@ -8,7 +8,7 @@ Each entry: what was decided, why, trade-offs, and fallback if it goes wrong.
 
 ## 2026-06-14 — Phase 6 (part 1): Ragas eval + Phoenix observability (portfolio upgrade)
 
-- **Decision:** Add **Ragas** (RAG eval) and **Arize Phoenix** (OpenTelemetry trace UI) on top of — not replacing — the existing custom `ObservabilityPlugin` and the originally-planned hand-rolled eval. This **reverses two earlier calls**: design.md §"Eval" rejected Ragas as "overkill," and AGENTS.md says "Do NOT use LangChain."
+- **Decision:** Add **Ragas** (RAG eval) and **Arize Phoenix** (OpenTelemetry trace UI) on top of — not replacing — the existing custom `ObservabilityPlugin` and the originally-planned hand-rolled eval. This **reverses two earlier calls**: design.md §"Eval" rejected Ragas as "overkill," and the project guidelines say "Do NOT use LangChain."
 - **Why:** This is the interview centerpiece; "evaluated with Ragas, traced with Phoenix" are recognizable resume lines and stronger demo artifacts (the Phoenix trace waterfall is the video money-shot) than a bespoke harness. The "no-LangChain / show-the-primitives" rule is about the **agent core**, which stays LangChain-free — Ragas' LangChain deps are eval-only.
 - **Dependency isolation:** eval deps live in a non-default `eval` dependency group. The Cloud Run image (`uv sync --frozen --no-dev`) installs production deps only, so ragas/langchain/phoenix never ship. Phoenix is also **lazy-imported behind a `PHOENIX_ENABLED` flag** → `setup_phoenix()` is a no-op in prod and when the eval group isn't installed.
 - **Key fix — ragas 0.4.3 ✗ langchain 1.x:** the resolver first pulled langchain 1.x / langchain-community 0.4, where `langchain_community.chat_models.vertexai` was removed; ragas 0.4.3 imports that path unconditionally → `ModuleNotFoundError` on `import ragas`. Fixed by pinning the langchain stack to the 0.3 line (`langchain<1`, `langchain-core<1`, `langchain-community<0.4`, `langchain-openai<1`). Only ragas uses langchain here, so pinning it down is safe. Also note: adding the group downgraded shared `protobuf` 7.x→6.x; verified `google.adk`/`google.genai`/`faiss` still import and the pipeline still runs.
@@ -54,7 +54,7 @@ Each entry: what was decided, why, trade-offs, and fallback if it goes wrong.
 ### Groundedness checks the retrieved evidence, not the draft's word
 
 - **Decision:** `rag_search` and `web_search` append their raw hits to `state["retrieved_context"]`; the Reviewer is given that evidence as the *only* acceptable support.
-- **Why:** This is what let the Reviewer catch an ungrounded claim naturally in the WEB smoke test — the first draft asserted specific 2026 model releases (GPT-5.5 Pro, the AI assistant Mythos, Gemma 4) that weren't in the Tavily snippets (the LLM leaned on parametric knowledge); the Reviewer FAILed it and the Researcher revised to evidence-only. The user-facing answer is surfaced from `state["draft_answer"]` (the reviewed draft), not the pipeline's last event (which is the QA verdict).
+- **Why:** This is what let the Reviewer catch an ungrounded claim naturally in the WEB smoke test — the first draft asserted specific 2026 model releases (GPT-5.5 Pro, Llama 5 Titan, Gemma 4) that weren't in the Tavily snippets (the LLM leaned on parametric knowledge); the Reviewer FAILed it and the Researcher revised to evidence-only. The user-facing answer is surfaced from `state["draft_answer"]` (the reviewed draft), not the pipeline's last event (which is the QA verdict).
 
 ---
 
@@ -65,7 +65,7 @@ Each entry: what was decided, why, trade-offs, and fallback if it goes wrong.
 - **Decision:** Repurpose `class-notes-rag` from a learn-by-doing RAG over bootcamp transcripts into the **Synapse "Master Agentic AI" certification capstone** — a 3-agent Research Assistant (Orchestrator / Researcher / Reviewer) on **Google ADK**, over a corpus of AI/ML papers (RAG) + live web (Tavily), deployed to Cloud Run.
 - **Why:** Two goals collapse into one build — (1) the cert requires submitting this capstone by the **hard deadline 2026-06-25**; (2) it doubles as the AI-Engineer portfolio centerpiece. The transcript-RAG project had no external deadline and was redundant with the cert work.
 - **Authoritative docs:** [`cert-capstone-design.md`](cert-capstone-design.md) (architecture + graded rubric), [`cert-capstone-build-prompt.md`](cert-capstone-build-prompt.md) (ordered Step 0→Phase 6 plan). These supersede `design.md`/`status.md` as current direction.
-- **Committed:** `b251928` (AGENTS.md rewrite + the two cert docs).
+- **Committed:** `b251928` (project-guide rewrite + the two cert docs).
 
 ### Stack changes (Google-native, rubric-mandated)
 
@@ -78,7 +78,7 @@ Each entry: what was decided, why, trade-offs, and fallback if it goes wrong.
 
 ### Working mode: learn-by-doing → build + narrate
 
-- **Decision:** Retire the "Zaid writes every line" micro-step rule for this build. the AI assistant writes full implementations and narrates architecture + key decisions tightly.
+- **Decision:** Retire the "Zaid writes every line" micro-step rule for this build. Full implementations are written directly, with architecture + key decisions narrated tightly.
 - **Why:** The 6/25 deadline doesn't allow line-by-line teaching. Understanding is still required (interview defense), so narration stays — just at the architecture level, not the syntax level.
 
 ### Trade-off flagged: this REVERSES the Day 1–2 "$0 / no-payment-method" stance
@@ -92,7 +92,7 @@ Each entry: what was decided, why, trade-offs, and fallback if it goes wrong.
 - **Decision:** Code lives in the `src/` package (matches the cert SPEC's own sample structure: `src/{agents,rag,tools,observability}/main.py`). Colab's role is **demo + easy-run only** — a thin driver notebook in `notebooks/` that `import`s from `src/` and runs the pipeline cell-by-cell, plus `auth.authenticate_user()` for zero-friction GCP auth. The `src/` modules are NOT cell-annotated.
 - **Why:** The cert's graded deliverables are Code + ppt + demo video — *not* a notebook. Two hard constraints forbid notebook-as-code: (1) Cloud Run deploys a containerized app, not a `.ipynb`; (2) the portfolio centerpiece must read as clean modular code. A module that doubles as a linear notebook fights itself (top-level cell code runs on `import`). Cells should *call* modules, not *contain* them.
 - **Driver file form:** `notebooks/` driver written as a `# %%` jupytext "percent" `.py` (clean diffs, versionable) that Colab/VS Code render as cells and convert to `.ipynb`. This is the "sections in a file" idea — applied only to the driver, not the core modules.
-- **Auth path (Step 0):** local `gcloud` ADC, not Colab auth — so the AI assistant can run/verify the pipeline locally as it builds, and because Cloud Run needs that same ADC. Colab auth (`auth.authenticate_user()`) stays available as the demo-notebook path. (Zaid's pick, 2026-06-14.)
+- **Auth path (Step 0):** local `gcloud` ADC, not Colab auth — so the pipeline can be run/verified locally as it builds, and because Cloud Run needs that same ADC. Colab auth (`auth.authenticate_user()`) stays available as the demo-notebook path. (Zaid's pick, 2026-06-14.)
 
 ### Step 0 (GCP gate) — RESOLVED 2026-06-14
 
@@ -118,7 +118,7 @@ Each entry: what was decided, why, trade-offs, and fallback if it goes wrong.
 - **Updates needed (carried into Day 3 since not implemented today):**
   - `pyproject.toml`: add `sentence-transformers`, drop `voyageai`.
   - `embedder.py`: swap Voyage client for `SentenceTransformer("BAAI/bge-large-en-v1.5").encode(...)`.
-  - `AGENTS.md` + `design.md` stack tables: replace Voyage row.
+  - project-guide + `design.md` stack tables: replace Voyage row.
 - **Supersedes:** The earlier "stay on Voyage card-off, batch + sleep" entry below. Keep that entry as a record of the rate-limit findings, but the implementation decision is now this one.
 
 ### Voyage rate limits + payment-method decision (final)
@@ -144,7 +144,7 @@ Each entry: what was decided, why, trade-offs, and fallback if it goes wrong.
 - **Trade-off:** None functionally — same 1024-dim output by default, same provider, same SDK call shape. Tiny risk that we're "newer than the design doc said" but that's the right direction.
 - **Fallback:** If `voyage-3.5` ever rate-limits unexpectedly, `voyage-3-large` is in the same free pool.
 - **Bonus correction:** Day 1's planned "21s sleep between batches to respect 3 RPM" was based on a wrong RPM assumption. Voyage Tier 1 = 2000 RPM / 8M TPM; even the strictest free-tier ceiling we found in error responses is 20 RPM. For ~430 chunks total (< 1000 batch cap), a single embed call covers the whole corpus — no inter-batch sleep needed.
-- **Updated:** [design.md](design.md), project `AGENTS.md`.
+- **Updated:** [design.md](design.md), project guide.
 
 ---
 
@@ -160,15 +160,15 @@ Each entry: what was decided, why, trade-offs, and fallback if it goes wrong.
 
 - **Decision:** Project state (status, learning curriculum, weaknesses, teaching style, decisions) all go in `class-notes-rag/docs/`. EA is not the planning hub for this project anymore.
 - **Why:** Self-contained projects ship cleaner. Recruiters reviewing the repo see the full history without external context.
-- **Updated:** Project `AGENTS.md` to reflect the new EA boundary ("stay out of EA except for reading transcripts").
+- **Updated:** Project guide to reflect the new EA boundary ("stay out of EA except for reading transcripts").
 
 ### Synthesis LLM: Anthropic → Gemini
 
-- **Decision:** Use Gemini 2.5 Flash for synthesis and Gemini 2.5 Pro for the eval judge, instead of the AI assistant Sonnet 4.7 / Opus 4.7.
+- **Decision:** Use Gemini 2.5 Flash for synthesis and Gemini 2.5 Pro for the eval judge, instead of another vendor's models.
 - **Why:** Anthropic's free signup credit was already exhausted on a prior project. This project must stay $0 per Zaid's budget. Google AI Studio's Gemini free tier requires no payment method.
 - **Trade-off:** Loses direct Anthropic SDK practice (relevant for AI Engineer interviews). Mitigated by Gemini's SDK having the same shape (client → `generate_content`); the conceptual pattern transfers. The Voyage + pgvector retrieval pipeline is identical regardless of LLM.
 - **Fallback if Gemini rate-limits become painful:** swap to local Ollama for synthesis. Retrieval pipeline unchanged.
-- **Updated:** [design.md](design.md), project `AGENTS.md`, home `AGENTS.md`, `pyproject.toml`, `.env.example`.
+- **Updated:** [design.md](design.md), project guide, `pyproject.toml`, `.env.example`.
 
 ### Postgres hosting: local Docker for development
 

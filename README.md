@@ -261,7 +261,7 @@ src/
 eval/             Ragas + routing evaluation harness and dataset
 knowledge_base/   corpus manifest (PDFs downloaded via scripts/)
 Dockerfile        container image (Cloud Run / local docker build)
-docs/             design, decisions, and session logs
+docs/             design + decision logs, demo script, deck
 ```
 
 ---
@@ -270,4 +270,3 @@ docs/             design, decisions, and session logs
 
 - [docs/cert-capstone-design.md](docs/cert-capstone-design.md) — architecture + rubric mapping
 - [docs/decisions.md](docs/decisions.md) — architectural decision log
-- [docs/sessions.md](docs/sessions.md) — per-session build log
