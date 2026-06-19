@@ -3,6 +3,9 @@
 .env.local
 *.key
 
+# Local MCP server config (machine-specific paths to ~/.gmail-mcp; do not commit to the public repo)
+.mcp.json
+
 # Python
 __pycache__/
 *.py[cod]
@@ -23,6 +26,9 @@ venv/
 # OS
 .DS_Store
 Thumbs.db
+
+# Office lock/temp files (created while a .pptx/.docx/.xlsx is open)
+~$*
 
 # Project data (raw transcripts stay in EA, not here)
 data/

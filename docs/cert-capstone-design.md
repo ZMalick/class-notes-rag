@@ -26,7 +26,7 @@ Answer research questions over a curated corpus of AI/ML papers (RAG) and live w
 | Pillar | Weight | Implementation |
 |--------|--------|----------------|
 | **ADK multi-agent system** | 40% | 3 agents (Orchestrator, Researcher, Reviewer/QA) on Gemini; ADK session state; 2+ communication patterns |
-| **RAG** | 25% | `pypdf` extract → semantic chunking → Vertex `text-embedding-005` → FAISS on-disk index |
+| **RAG** | 25% | `pypdf` extract → 500-token-window chunking (50 overlap, per page) → Vertex `text-embedding-005` → FAISS on-disk index |
 | **Web search** | 15% | Tavily tool; orchestrator routes corpus-facts→RAG, "latest/recent/2026"→web, ambiguous→both |
 | **Observability + deploy + presentation** | ~20% | structured logging + ADK event traces + metrics; Dockerfile→Cloud Run; ppt + demo video |
 
@@ -77,7 +77,7 @@ user query
 
 ## 5. Data flow (RAG path)
 
-`knowledge_base/*.pdf` → `chunker` (semantic chunks + page/title metadata) → `embedder` (Vertex `text-embedding-005`, ~768-dim — **verify**) → FAISS index persisted to `faiss_index/`. Query time: `retriever` embeds the query with the same model, FAISS top-k, returns chunks + citations.
+`knowledge_base/*.pdf` → `chunker` (fixed 500-token windows / 50 overlap, page/title metadata — **shipped as token windows, not the "semantic chunking" this plan originally named**) → `embedder` (Vertex `text-embedding-005`, ~768-dim — **verify**) → FAISS index persisted to `faiss_index/`. Query time: `retriever` embeds the query with the same model, FAISS top-k, returns chunks + citations.
 
 ## 6. Corpus
 

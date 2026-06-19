@@ -219,7 +219,7 @@ function arrow(s, x, y) {
 
 // ===================== Slide 6 — RAG pipeline =====================
 {
-  const s = content("RAG pipeline", "pypdf → semantic chunks → Vertex embeddings → FAISS → cited retrieval");
+  const s = content("RAG pipeline", "pypdf → 500-token windows → Vertex embeddings → FAISS → cited retrieval");
   const steps = ["PDF\n(pypdf)", "Chunk\n500/50 tok", "Embed\ntext-embedding-005", "FAISS\nIndexFlatIP", "Retrieve\ntop-k + cite"];
   const sw = 2.15, sh = 1.35, y = 2.05; let x = 0.6;
   steps.forEach((st, i) => {
@@ -345,7 +345,7 @@ function arrow(s, x, y) {
   const s = content("Key decisions & challenges", "Where engineering judgment showed up");
   const items = [
     ["Deterministic loop exit", "Replaced LLM exit_loop with a ReviewGate control node — fixed a bug where a needless second pass overwrote a good answer."],
-    ["Evidence-based groundedness", "The Reviewer checks the retrieved evidence, not the draft’s claims — this caught a real hallucination during testing."],
+    ["Evidence-based groundedness", "The Reviewer checks every claim in the draft against the retrieved evidence the tools captured — this caught a real hallucination during testing."],
     ["Isolated the eval stack", "Ragas needed LangChain (incompatible with v1.x) — pinned + quarantined to an eval-only group, excluded from the served app."],
   ];
   let y = 1.8;

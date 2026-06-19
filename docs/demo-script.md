@@ -1,149 +1,140 @@
-# Demo Video Script — Research Assistant (Multi-Agent ADK)
+# Demo Video — Full Walkthrough Script (~18–22 min)
 
-**Target length:** 4–5 minutes. **Goal:** show every graded pillar live — the
-multi-agent system (40%), RAG (25%), web search + routing (15%), and
-observability + deploy (20%) — with the routing + feedback-loop "moments" that
-prove the architecture actually works.
-
-> Tip: record in 1080p, hide secrets (don't show `.env`), and keep the terminal
-> font large. The whole thing can be one screen-recording with voiceover.
-
----
-
-## Pre-record setup
-
-- **Terminal A** (the star): project root, venv active. On Windows prefix runs with `PYTHONIOENCODING=utf-8` so paper symbols don't crash the console.
-- **Terminal B** (for the Phoenix scene): `uv sync --group eval` then `phoenix serve` (UI at http://localhost:6006).
-- **Browser tabs ready:** the Phoenix UI, the GitHub repo, and the live URL.
-- **Files open:** `eval/results.md` (the eval table).
-- Do a throwaway dry run of each query first — the Reviewer FAIL→revise moment (Scene 4) is probabilistic, so run the WEB query a couple times beforehand and capture the take where it fires.
+> **Format (calibrated to a real peer submission — Khalid's ~28-min walkthrough +
+> 16-page report):** the cert video is a **thorough narrated walkthrough**, not a
+> 4–5 min demo reel. Structure below mirrors that proven format: business framing
+> up front, then architecture → agents → patterns → RAG → live demo → observability
+> → eval → deploy. The "why" lines are pulled from
+> [design-decision-qa.md](design-decision-qa.md) — this script doubles as your
+> **Phase 2 rehearsal sheet**.
+>
+> **How to use it:** these are *talking points*, not a teleprompter — you understand
+> this now, so speak naturally. Record in segments if you want; stitch later. Aim for
+> coverage and clarity over hitting a runtime. Pre-flight (env, warm the service,
+> window layout) is in [recording-run-sheet.md](recording-run-sheet.md).
 
 ---
 
-## Scene 1 — Hook + architecture (≈30s)
-
-**On screen:** the README architecture diagram (or the repo landing page).
-
-**Voiceover:**
-> "This is a multi-agent research assistant built on Google's Agent Development Kit. You ask a research question; an **Orchestrator** decides whether to answer from a corpus of AI/ML papers, the live web, or both; a **Researcher** gathers the evidence; and a **Reviewer** checks that every claim is grounded before you see the answer. Three agents on Gemini 2.5, four communication patterns, deployed live on Cloud Run. Let me show you."
-
----
-
-## Scene 2 — CORPUS query: RAG + routing + citations (≈45s)
-
-**Command (Terminal A):**
-```bash
-PYTHONIOENCODING=utf-8 uv run python -m src.cli "What is scaled dot-product attention?"
-```
-
-**Point at, as the trace streams:**
-- `[Orchestrator]` writes route → **CORPUS**.
-- `[Researcher] -> tool rag_search(...)` — it searches the FAISS paper index.
-- The final answer with an inline citation: **`[Attention Is All You Need p.4]`**.
-- `[Reviewer] PASS`.
-- The observability block: route, per-agent latency, token counts, retrieval cosine scores.
-
-**Voiceover:**
-> "A factual question about the literature routes to **RAG**. The Researcher searches a FAISS index of 15 papers, answers with a page-level citation, and the Reviewer confirms it's grounded. Notice the metrics at the bottom — latency, tokens, retrieval scores — captured for every run."
+## 0 · Pre-flight (off camera)
+- Env live (`.env`, FAISS index built), Cloud Run warmed (`curl …/health` once).
+- Terminal A (large font), Terminal B running `phoenix serve`, browser tabs: Phoenix (localhost:6006), GitHub repo, live URL. `eval/results.md` open.
+- Dry-run the WEB query a couple times so you can catch the Reviewer-FAIL take live (Scene 6).
+- **Never show `.env` on camera.**
 
 ---
 
-## Scene 3 — WEB query: live search + routing (≈30s)
+## 1 · Hook — the problem (business framing) (~1.5 min)
+**On screen:** the README / architecture diagram, or just you talking.
 
-**Command:**
-```bash
-PYTHONIOENCODING=utf-8 uv run python -m src.cli "What are the most recent large language model releases in 2026?"
-```
-
-**Point at:** route → **WEB**, `web_search` (Tavily) tool call, an answer citing live URLs.
-
-**Voiceover:**
-> "Ask about something after the papers were written — 'latest 2026 releases' — and the Orchestrator routes to **live web search** instead. Same pipeline, different source, chosen automatically."
+**Say:** → canonical read-script in [`scenes/scene01-hook.md`](scenes/scene01-hook.md) — **LOCKED, approved 2026-06-18**. Read from that file on camera. The per-scene files in [`scenes/`](scenes/) are the source of truth for what you *say*; this overview doc keeps scene ordering and the "on screen" cues only.
 
 ---
 
-## Scene 4 — The feedback loop (the differentiator) (≈45s)
+## 2 · What I built — the headline (~1.5 min)
+**On screen:** README "Highlights" + stack table.
 
-> This is the moment that separates a real multi-agent system from a single prompt. Capture the take where the Reviewer **FAILs** the first draft and the Researcher **revises**.
-
-**Command (re-run the WEB or a BOTH query until it fires):**
-```bash
-PYTHONIOENCODING=utf-8 uv run python -m src.cli "What are the most recent large language model releases in 2026?"
-```
-
-**Point at:** `[Reviewer] FAIL ...` (an ungrounded claim caught) → the loop runs the Researcher **again** → a second `[Reviewer] PASS` on the evidence-only revision.
-
-**Voiceover:**
-> "Here's the feedback loop. The first draft made a claim the web snippets didn't support, so the **Reviewer failed it** — and the system looped back, the Researcher revised using only the retrieved evidence, and the second pass was approved. Groundedness is enforced, not assumed."
+**Say:**
+> "Three collaborating agents on Gemini 2.5, wired on a deterministic control spine. Four ADK communication patterns — the rubric asks for two. RAG over 15 arXiv papers using Vertex embeddings and a FAISS index, with page-level citations. Live web search via Tavily, with smart routing between the two. It's evaluated with Ragas, observable through both an in-process metrics plugin and an Arize Phoenix trace UI, and deployed live on Cloud Run. I'll hit each of those."
 
 ---
 
-## Scene 5 — BOTH query: parallel execution (≈25s)
+## 3 · Architecture overview (~2 min)
+**On screen:** the architecture diagram in the README.
 
-**Command:**
-```bash
-PYTHONIOENCODING=utf-8 uv run python -m src.cli "Compare retrieval-augmented generation in the papers with the latest 2026 RAG techniques."
-```
-
-**Point at:** route → **BOTH**, `rag_search` **and** `web_search` both called, a blended answer with paper citations **and** web URLs.
-
-**Voiceover:**
-> "A question that needs both sources fires RAG and web search **in parallel**, then blends corpus citations with live web sources in one answer."
+**Say:**
+> "Here's the shape. A user question enters a fixed pipeline. First, an **Orchestrator** agent classifies it — corpus, web, or both. Then a **Researcher** agent gathers evidence using tools and drafts a cited answer. Then a **Reviewer** agent checks that every claim is grounded in what was retrieved. If it passes, you get the answer; if it fails, it loops back and the Researcher revises.
+>
+> Two things to flag up front. First, there's no single 'master' LLM running the show — it's the *same* Gemini model invoked in three different roles, and the thing that runs them in order is plain code, a deterministic pipeline. Second, the agents never call each other directly — they coordinate through **ADK session state**, a shared scratchpad each agent reads and writes. That keeps them decoupled."
 
 ---
 
-## Scene 6 — Observability: the Phoenix trace (≈30s)
+## 4 · The agents, one by one (~3 min)
+**On screen:** open `src/agents/orchestrator.py`, then `researcher`, `reviewer`, `review_gate.py`.
 
-**On screen:** switch to the Phoenix UI (localhost:6006). Run one query with tracing on:
-```bash
-# Terminal B already running: phoenix serve
-PHOENIX_ENABLED=true PYTHONIOENCODING=utf-8 uv run python -m src.cli "How does LoRA make fine-tuning efficient?"
-```
-
-**Point at:** the trace waterfall — Orchestrator → Researcher → tool calls → Reviewer, with timings and token counts per span. Expand one LLM span to show the prompt.
-
-**Voiceover:**
-> "Every run is also traced with OpenTelemetry into Arize Phoenix. You can see exactly how the agents collaborated — each step, each tool call, each model call — with latency and tokens. Great for debugging and for proving the system does what it claims."
-
-> Grab a screenshot here for the README's observability section.
+**Say (per agent):**
+- **Orchestrator** — "Its only job is to classify. It reads the question and an instruction that defines CORPUS / WEB / BOTH with signal words — things like 'latest' or a year like 2026 push it to web — and it outputs a single label to session state. No tools, no retrieval. It's the receptionist that routes you to a department."
+- **Researcher** — "The only agent with tools: `rag_search` over the FAISS index, and `web_search` via Tavily. It reads the route, requests the right tool — both at once on a BOTH query — and writes a cited draft. Worth being precise: the LLM doesn't run the search itself; it *requests* the tool, and ADK runs the function and feeds the results back."
+- **Reviewer** — "Groundedness QA. Its prompt injects the draft and the retrieved evidence from session state, and it checks every claim is actually supported — then emits a PASS or FAIL verdict. It's enforcing groundedness, not absolute truth: it verifies claims match the sources we retrieved."
+- **ReviewGate** — "A tiny *non-LLM* control node — twelve lines. It reads the verdict and stops the loop on PASS. **Design decision worth calling out:** I deliberately kept the loop-exit decision out of the LLM's hands. An earlier version let the Reviewer stop the loop itself, but the model sometimes split its 'PASS' and the stop signal across turns, and a needless second pass overwrote a good answer. Moving the stop into deterministic code fixed it."
 
 ---
 
-## Scene 7 — Evaluation (≈25s)
+## 5 · Communication patterns (the 40% core) (~1.5 min)
+**On screen:** `src/agents/agent.py` (the topology) + the README patterns table.
 
-**On screen:** `eval/results.md` (or run `uv run python -m eval.run_eval --skip-ragas` to show routing live).
-
-**Voiceover:**
-> "I evaluated it with **Ragas** over a labeled question set: faithfulness 0.98, answer relevancy 0.83, context precision 0.81, context recall 0.93 — plus **100% routing accuracy** across corpus, web, and mixed questions. Not just 'it runs' — measured quality."
-
----
-
-## Scene 8 — It's live (≈20s)
-
-**On screen:** browser or curl to the deployed service.
-```bash
-curl -s https://research-assistant-969189630215.us-central1.run.app/health
-```
-
-**Voiceover:**
-> "And it's deployed on **Google Cloud Run** — FastAPI in a container, the FAISS index baked in, Vertex auth via the service identity. Here's the live endpoint answering in the cloud."
+**Say:**
+> "The whole thing is a `SequentialAgent` containing the Orchestrator and then a `LoopAgent` of Researcher → Reviewer → ReviewGate, capped at two iterations. That single structure demonstrates four communication patterns: **sequential flow** is the outer pipeline; **feedback loop** is the LoopAgent; **parallel execution** is the Researcher firing both tools at once on a BOTH query; and **hierarchical delegation** is the Orchestrator's route driving the Researcher's tool choice through session state. The rubric asks for two — this has four."
 
 ---
 
-## Scene 9 — Close (≈15s)
+## 6 · RAG pipeline (~2 min)
+**On screen:** `src/rag/chunker.py` → `embedder.py` → `retriever.py`.
 
+**Say:**
+> "RAG is the fix for hallucination — instead of answering from memory, the model answers from real pages I hand it. Build time: I take 15 arXiv PDFs, chunk each page into ~500-token windows with overlap, embed each chunk with Vertex `text-embedding-005` into 768-dimensional vectors, and store them in a FAISS index — about 1,140 chunks. Each chunk keeps its paper title and page number, which is where the citations come from.
+>
+> Query time: the question gets embedded the same way, FAISS finds the closest chunks by **cosine similarity** — not probability, *similarity*, how alike in meaning — and those passages go to the Researcher, which answers only from them. One detail I'm proud of: I normalize the vectors so a FAISS inner-product search *is* cosine similarity."
+
+---
+
+## 7 · Live demo — the routing moments (~4 min)
+> This is the proof it works. Clear the terminal between runs.
+
+**CORPUS** — `PYTHONIOENCODING=utf-8 uv run python -m src.cli "What is scaled dot-product attention?"`
+> "A textbook question routes to CORPUS, searches the papers, answers with a page citation — `[Attention Is All You Need p.4]` — and the Reviewer passes it. Notice the metrics at the bottom: route, per-agent latency, tokens, retrieval scores, captured every run."
+
+**WEB** — `… "What are the most recent large language model releases in 2026?"`
+> "Ask about something after the papers were written and the Orchestrator routes to live web search instead. Same pipeline, different source, chosen automatically."
+
+**FEEDBACK LOOP** (re-run the WEB query until it fires)
+> "Here's the differentiator. The first draft made a claim the web snippets didn't support, so the Reviewer **failed** it — and the system looped back, the Researcher revised using only the retrieved evidence, and the second pass passed. Groundedness is enforced, not assumed."
+
+**BOTH** — `… "Compare retrieval-augmented generation in the papers with the latest 2026 RAG techniques."`
+> "A question needing both sources fires RAG and web search **in parallel**, then blends paper citations with live web URLs in one answer."
+
+---
+
+## 8 · Observability (~2 min)
+**On screen:** the CLI metrics block, then switch to Phoenix (localhost:6006).
+
+**Say:**
+> "Two layers. In-process: a single ADK plugin on the runner captures route, per-agent and per-tool latency, token counts, and retrieval scores every run, and the API returns that metrics dict with every answer. And a trace UI: with OpenTelemetry I export the whole run into Arize Phoenix, where you can see the waterfall — Orchestrator, Researcher with its tool call, Reviewer, ReviewGate — each span with its latency and tokens. Great for debugging and for proving the agents actually collaborated the way I claim."
+
+**On screen:** run one traced query → expand the trace.
+
+---
+
+## 9 · Evaluation (~2 min)
+**On screen:** `eval/results.md`, or run `uv run python -m eval.run_eval --skip-ragas` for live routing.
+
+**Say:**
+> "I didn't want to just say 'it looks right.' The hard part is that the output is prose — there's no single correct string to match. So I use **LLM-as-judge**: the Ragas library has a stronger model, Gemini 2.5 Pro, grade each answer 0 to 1 against the evidence, over the 15 corpus questions that have a reference answer. Faithfulness 0.98 — is every claim grounded; answer relevancy 0.83; context precision 0.81 and recall 0.93 — those two grade the retrieval. Plus 100% routing accuracy — that one's a deterministic exact-match, no judge needed. So: measured quality, not vibes."
+
+---
+
+## 10 · Deployment (~2 min)
+**On screen:** `Dockerfile`, `src/main.py`, then `curl` the live URL.
+
+**Say:**
+> "To make it usable by anyone, the code has to run on an always-on, reachable computer — not my laptop. Three steps: I wrap the agent in a FastAPI service with an `/ask` endpoint; I package it plus the prebuilt FAISS index into a Docker container so it runs identically anywhere; and I deploy that container to Google Cloud Run, which runs it on Google's servers and gives a public URL. Users send a question to the URL and get an answer — nothing runs on their machine. Auth to Vertex is via the Cloud Run service identity, so there are no keys baked into the image. Here it is answering live in the cloud."
+
+`curl -s https://research-assistant-969189630215.us-central1.run.app/health`
+
+---
+
+## 11 · Close (~1 min)
 **On screen:** the GitHub repo.
 
-**Voiceover:**
-> "Google ADK, Gemini 2.5, Vertex embeddings, FAISS, Tavily, FastAPI on Cloud Run — three agents, four communication patterns, evaluated and observable. Code's on GitHub. Thanks for watching."
+**Say:**
+> "So: Google ADK, Gemini 2.5, Vertex embeddings, FAISS, Tavily, FastAPI on Cloud Run — three agents, four communication patterns, grounded RAG with citations, smart routing, an independent review loop, evaluated with Ragas and fully observable. It's not a prototype — it's measured, traced, and live. Code's on GitHub. Thanks for watching."
 
 ---
 
-## Rubric coverage checklist (make sure the final cut hits all of these)
-
-- [ ] 3 agents named + their roles shown (Scenes 1–2) — **40%**
-- [ ] 2+ communication patterns shown: feedback loop (Scene 4) + parallel (Scene 5) [+ sequential/hierarchical implied] — **40%**
-- [ ] RAG: chunking→embed→FAISS retrieval with citations (Scene 2) — **25%**
-- [ ] Web search routing (Scene 3) — **15%**
-- [ ] Observability (Scene 6) + deployment (Scene 8) — **20%**
-- [ ] Eval numbers shown (Scene 7) — polish
+## Rubric coverage checklist (the final cut must hit all of these)
+- [ ] 3 agents named + roles shown (Scenes 3–4) — **40%**
+- [ ] 2+ communication patterns shown live: feedback loop (Scene 7) + parallel (Scene 7) — **40%**
+- [ ] RAG: chunk → embed → FAISS retrieval with citations (Scenes 6–7) — **25%**
+- [ ] Web search + routing (Scene 7) — **15%**
+- [ ] Observability (Scene 8) + deployment (Scene 10) — **20%**
+- [ ] Eval numbers shown (Scene 9) — polish
+- [ ] Business framing up front (Scene 1) — presentation polish (borrowed from the peer example)
