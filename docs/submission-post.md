@@ -44,8 +44,8 @@ deliberately avoids LangChain/LlamaIndex to show the RAG primitives directly
 (LangChain appears only as an isolated, eval-only dependency for Ragas).
 
 **Links.**
-- Live demo: https://research-assistant-969189630215.us-central1.run.app
-  (`GET /health`, or `POST /ask {"question": "..."}`)
+- Live demo (chat UI): https://research-assistant-ui-969189630215.us-central1.run.app
+  (backend API: https://research-assistant-969189630215.us-central1.run.app — `GET /health`, `POST /ask {"question": "..."}`)
 - Code: https://github.com/ZMalick/multi-agent-research-assistant
 - Demo video: **[ paste link ]**
 - Presentation: **[ attach Research-Assistant-Capstone.pptx ]**
@@ -67,7 +67,7 @@ communication patterns, evaluated with Ragas (faithfulness 0.98 · routing 19/19
 fully observable (ADK plugin + Arize Phoenix traces), and deployed live on
 Cloud Run.
 
-- Live: https://research-assistant-969189630215.us-central1.run.app
+- Live (chat UI): https://research-assistant-ui-969189630215.us-central1.run.app
 - Code: https://github.com/ZMalick/multi-agent-research-assistant
 - Video: **[ link ]** · Deck: **[ attached ]**
 

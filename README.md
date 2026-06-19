@@ -9,7 +9,7 @@ with full observability and an automated evaluation harness.
 Built as the capstone for the Synapse "Master Agentic AI" certification and as an
 AI-engineering portfolio project.
 
-**Live demo:** https://research-assistant-969189630215.us-central1.run.app — try `GET /health` or `POST /ask {"question": "..."}`.
+**Live demo (chatbot):** https://research-assistant-ui-969189630215.us-central1.run.app — a Streamlit chat UI over the API. Backend API: https://research-assistant-969189630215.us-central1.run.app (`GET /health`, `POST /ask {"question": "..."}`).
 
 ---
 
@@ -140,8 +140,8 @@ uv run python -m uvicorn src.main:app --port 8080
 #   POST /ask   {"question": "..."}     →  {answer, route, review_verdict, metrics}
 #   GET  /health
 
-# Demo UI — thin Streamlit client over the API
-API_URL=http://localhost:8080 uv run streamlit run app_streamlit.py
+# Demo UI — thin Streamlit chat client over the API (deployed separately, see Deployment)
+API_URL=http://localhost:8080 uv run streamlit run ui/app_streamlit.py
 ```
 
 ---
@@ -218,23 +218,31 @@ span carrying its own latency and token counts._
 
 ## Deployment
 
-**Live:** https://research-assistant-969189630215.us-central1.run.app — public
-endpoint, capped at 3 instances, scales to zero when idle.
+Two Cloud Run services:
 
-The service is containerized for **Google Cloud Run** ([Dockerfile](Dockerfile)):
+- **Chatbot UI (demo):** https://research-assistant-ui-969189630215.us-central1.run.app
+  — a thin Streamlit chat client ([ui/](ui/)).
+- **API (backend):** https://research-assistant-969189630215.us-central1.run.app
+  — FastAPI `/ask` + `/health`. Public, capped at 3 instances, scales to zero when idle.
+
+The API is containerized for **Google Cloud Run** ([Dockerfile](Dockerfile)):
 a `uv`-based image built from `uv.lock`, with the prebuilt FAISS index baked in
 (corpus PDFs and eval deps excluded). Vertex/Gemini auth comes from the Cloud Run
 service identity (ADC) — no keys baked into the image; `gcloud run deploy --source`
-uses [.gcloudignore](.gcloudignore) so the gitignored index still uploads.
+uses [.gcloudignore](.gcloudignore) so the gitignored index still uploads. The UI is
+a separate, lean image ([ui/Dockerfile](ui/Dockerfile)) that holds no credentials —
+it only POSTs to the API via its `API_URL` env var.
 
 ```bash
-# Local build
-docker build -t research-assistant .
-
-# Deploy to Cloud Run (built in-cloud via Cloud Build)
+# API — deploy to Cloud Run (built in-cloud via Cloud Build)
 gcloud run deploy research-assistant --source . --region us-central1 \
   --allow-unauthenticated --memory 1Gi \
   --set-env-vars GOOGLE_GENAI_USE_VERTEXAI=true,GOOGLE_CLOUD_PROJECT=<id>,GOOGLE_CLOUD_LOCATION=us-central1,TAVILY_API_KEY=<key>
+
+# Demo UI — separate lean service that points at the API
+gcloud run deploy research-assistant-ui --source ui --region us-central1 \
+  --allow-unauthenticated --memory 512Mi \
+  --set-env-vars API_URL=https://research-assistant-969189630215.us-central1.run.app
 ```
 
 ---

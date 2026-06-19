@@ -1,0 +1,4 @@
+# Demo UI image deps — pure HTTP client of the API service (no GCP, no FAISS, no src/).
+# Pinned to the versions already resolved in the project's uv.lock.
+streamlit==1.57.0
+requests==2.34.0
